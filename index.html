@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cuchubales App</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#3b82f6',
+              'primary-hover': '#2563eb',
+              bg: '#f8fafc',
+              surface: '#ffffff',
+              border: '#e2e8f0',
+              text: '#0f172a',
+              'text-secondary': '#64748b',
+              danger: '#ef4444',
+              success: '#22c55e',
+              warning: '#f59e0b',
+              accent: '#8b5cf6'
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Tailwind CSS direct layer overrides -->
+    <style type="text/tailwindcss">
+      @layer base {
+        body {
+          @apply bg-bg text-text antialiased;
+          font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+      }
+      @layer components {
+        .btn {
+          @apply inline-flex items-center justify-center px-4 py-2 rounded-none font-medium transition-colors duration-200 cursor-pointer border border-transparent disabled:opacity-50 disabled:cursor-not-allowed;
+        }
+        .btn-primary {
+          @apply bg-primary text-white hover:bg-primary-hover shadow-sm;
+        }
+        .btn-outline {
+          @apply bg-transparent border-border text-text hover:bg-bg hover:border-gray-300;
+        }
+        .card {
+          @apply bg-surface rounded-none shadow-sm border border-border p-6;
+        }
+        .input {
+          @apply w-full px-3 py-2 bg-bg border border-border rounded-none text-text focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-shadow;
+        }
+        .input-group {
+          @apply mb-4;
+        }
+        .input-group label {
+          @apply block text-sm font-medium text-text mb-1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

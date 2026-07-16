@@ -1,0 +1,5 @@
+/* CSS custom para barras de scroll u otras reglas que CDN no maneje */
+body {
+  margin: 0;
+  padding: 0;
+}
