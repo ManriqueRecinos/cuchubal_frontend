@@ -253,7 +253,14 @@ const Calendario = () => {
   if (loading) return <div className="h-screen flex items-center justify-center bg-bg"><p className="text-text-secondary text-lg">Cargando...</p></div>;
 
   const morosos = getMorosos();
-  const selectOptions = participantes.filter(p => p.activo).map(p => ({ value: p.id, label: p.nombre }));
+  
+  // Filtrar participantes que ya tienen un pago en la fecha seleccionada
+  const pagosDelDia = selectedDate ? getPagosForDay(selectedDate.getDate()) : [];
+  const participantesConPagoHoy = pagosDelDia.map(p => p.participante_id);
+  
+  const selectOptions = participantes
+    .filter(p => p.activo && !participantesConPagoHoy.includes(p.id))
+    .map(p => ({ value: p.id, label: p.nombre }));
 
   return (
     <div className="min-h-screen lg:h-screen flex flex-col bg-bg lg:overflow-hidden">
