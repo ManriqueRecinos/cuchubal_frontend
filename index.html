@@ -10,25 +10,54 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
-              primary: '#3b82f6',
-              'primary-hover': '#2563eb',
-              bg: '#f8fafc',
-              surface: '#ffffff',
-              border: '#e2e8f0',
-              text: '#0f172a',
-              'text-secondary': '#64748b',
-              danger: '#ef4444',
-              success: '#22c55e',
-              warning: '#f59e0b',
-              accent: '#8b5cf6'
+              primary: 'var(--color-primary)',
+              'primary-hover': 'var(--color-primary-hover)',
+              bg: 'var(--color-bg)',
+              surface: 'var(--color-surface)',
+              border: 'var(--color-border)',
+              text: 'var(--color-text)',
+              'text-secondary': 'var(--color-text-secondary)',
+              danger: 'var(--color-danger)',
+              success: 'var(--color-success)',
+              warning: 'var(--color-warning)',
+              accent: 'var(--color-accent)'
             }
           }
         }
       }
     </script>
+    <style>
+      :root {
+        --color-primary: #3b82f6;
+        --color-primary-hover: #2563eb;
+        --color-bg: #f8fafc;
+        --color-surface: #ffffff;
+        --color-border: #e2e8f0;
+        --color-text: #0f172a;
+        --color-text-secondary: #64748b;
+        --color-danger: #ef4444;
+        --color-success: #22c55e;
+        --color-warning: #f59e0b;
+        --color-accent: #8b5cf6;
+      }
+      .dark {
+        --color-primary: #3b82f6;
+        --color-primary-hover: #60a5fa;
+        --color-bg: #0f172a;
+        --color-surface: #1e293b;
+        --color-border: #334155;
+        --color-text: #f8fafc;
+        --color-text-secondary: #94a3b8;
+        --color-danger: #f87171;
+        --color-success: #4ade80;
+        --color-warning: #fbbf24;
+        --color-accent: #a78bfa;
+      }
+    </style>
     
     <!-- Tailwind CSS direct layer overrides -->
     <style type="text/tailwindcss">
