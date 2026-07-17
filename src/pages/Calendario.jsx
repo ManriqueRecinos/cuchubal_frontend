@@ -447,7 +447,7 @@ const Calendario = () => {
 
   return (
     <div className="min-h-screen lg:h-screen flex flex-col bg-bg lg:overflow-hidden">
-      <div className="flex-none sticky top-0 z-[60]">
+      <div className="flex-none sticky top-0 z-40">
         <Navigation />
       </div>
       
@@ -645,7 +645,7 @@ const Calendario = () => {
 
         {/* Modal de Pago Diario */}
         {showModal && selectedDate && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
             <div className="card w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-none">
               
               <div className="flex justify-between items-center mb-6">
@@ -824,7 +824,7 @@ const Calendario = () => {
 
         {/* Error de reporte (toast temporal) */}
         {reporteError && !showReporte && (
-          <div className="fixed bottom-4 right-4 z-50 bg-red-50 dark:bg-red-950/40 border border-danger/40 text-danger p-4 rounded-none shadow-lg max-w-sm">
+          <div className="fixed bottom-4 right-4 z-[100] bg-red-50 dark:bg-red-950/40 border border-danger/40 text-danger p-4 rounded-none shadow-lg max-w-sm">
             <div className="flex items-start gap-2">
               <span className="text-sm font-medium flex-1">{reporteError}</span>
               <button onClick={() => setReporteError(null)} className="text-danger hover:opacity-70 flex-none">✕</button>
@@ -834,7 +834,7 @@ const Calendario = () => {
 
         {/* Modal de Reporte WhatsApp */}
         {showReporte && reporteData && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
             <div className="card w-full max-w-lg max-h-[90vh] flex flex-col rounded-none">
               <div className="flex justify-between items-center mb-4 flex-none">
                 <h2 className="text-xl font-bold text-text flex items-center gap-2">
