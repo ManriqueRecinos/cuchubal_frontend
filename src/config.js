@@ -2,7 +2,14 @@
 // En desarrollo: http://localhost:3001
 // En producción: Se configura con VITE_API_URL en las variables de entorno de Railway
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+let envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Si el usuario olvidó poner https:// en la variable de entorno, agregarlo automáticamente
+if (!envApiUrl.startsWith('http://') && !envApiUrl.startsWith('https://')) {
+  envApiUrl = 'https://' + envApiUrl;
+}
+
+const API_URL = envApiUrl;
 
 // Derivar la URL de WebSocket automáticamente desde la API_URL
 const wsProtocol = API_URL.startsWith('https') ? 'wss' : 'ws';
