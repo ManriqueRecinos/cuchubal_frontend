@@ -69,8 +69,8 @@ const HistorialUsuario = ({ participanteId, cuchubalId, cuota, onClose }) => {
               {p15 >= cuotaQ ? (
                 <span className="text-success flex items-center gap-1.5 font-medium"><CheckCircle size={16}/> Pagado</span>
               ) : (
-                <span className={`flex items-center gap-1.5 font-medium ${p15 > 0 ? 'text-warning' : 'text-danger'}`}>
-                  <AlertCircle size={16}/> {p15 > 0 ? `Q${p15}` : 'No pagado'}
+                <span className="text-danger flex items-center gap-1 font-semibold">
+                  <AlertCircle size={16}/> {p15 > 0 ? `$${p15}` : 'No pagado'}
                 </span>
               )}
             </div>
@@ -79,8 +79,8 @@ const HistorialUsuario = ({ participanteId, cuchubalId, cuota, onClose }) => {
               {p30 >= cuotaQ ? (
                 <span className="text-success flex items-center gap-1.5 font-medium"><CheckCircle size={16}/> Pagado</span>
               ) : (
-                <span className={`flex items-center gap-1.5 font-medium ${p30 > 0 ? 'text-warning' : 'text-danger'}`}>
-                  <AlertCircle size={16}/> {p30 > 0 ? `Q${p30}` : 'No pagado'}
+                <span className="text-danger flex items-center gap-1 font-semibold">
+                  <AlertCircle size={16}/> {p30 > 0 ? `$${p30}` : 'No pagado'}
                 </span>
               )}
             </div>

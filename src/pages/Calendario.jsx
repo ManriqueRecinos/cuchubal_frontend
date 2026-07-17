@@ -256,19 +256,19 @@ const Calendario = () => {
   const selectOptions = participantes.filter(p => p.activo).map(p => ({ value: p.id, label: p.nombre }));
 
   return (
-    <div className="h-screen flex flex-col bg-bg overflow-hidden">
+    <div className="min-h-screen lg:h-screen flex flex-col bg-bg lg:overflow-hidden">
       <div className="flex-none">
         <Navigation />
       </div>
       
       {/* Panel invertido: Sidebar izquierdo, Calendario derecho */}
-      <div className="flex-1 flex gap-6 px-4 pb-4 sm:px-6 lg:px-8 max-w-[1600px] w-full mx-auto min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-4 pb-4 sm:px-6 lg:px-8 max-w-[1600px] w-full mx-auto lg:min-h-0">
         
         {/* Panel Izquierdo (Mora y Participantes) */}
-        <div className="w-[360px] flex-none flex flex-col gap-4 h-full min-h-0">
+        <div className="w-full lg:w-[360px] flex-none flex flex-col gap-4 lg:h-full lg:min-h-0 h-auto">
           
           {/* Alertas de Mora */}
-          <div className={`card flex flex-col p-4 h-[280px] flex-none border-2 rounded-none ${morosos.length > 0 ? 'border-danger/30 bg-red-50/10' : 'border-border'}`}>
+          <div className={`card flex flex-col p-4 lg:h-[280px] h-[200px] flex-none border-2 rounded-none ${morosos.length > 0 ? 'border-danger/30 bg-red-50/10' : 'border-border'}`}>
             <h3 className={`text-lg font-bold flex items-center gap-2 mb-4 flex-none ${morosos.length > 0 ? 'text-danger' : 'text-text'}`}>
               En Mora ({morosos.length})
             </h3>
@@ -287,7 +287,7 @@ const Calendario = () => {
                     </div>
                     <div className="flex justify-between items-end">
                       <p className="text-xs text-danger">{m.razon}</p>
-                      <p className="text-sm font-bold text-text">Q{m.deuda}</p>
+                      <p className="text-sm font-bold text-text">${m.deuda}</p>
                     </div>
                   </div>
                 ))}
@@ -296,7 +296,7 @@ const Calendario = () => {
           </div>
 
           {/* Gestión de Participantes */}
-          <div className="card flex flex-col p-4 flex-1 min-h-0 rounded-none">
+          <div className="card flex flex-col p-4 flex-1 lg:min-h-0 min-h-[300px] rounded-none">
             <h3 className="text-lg font-bold mb-4 flex-none text-text">Participantes ({participantes.length})</h3>
             
             {/* Formulario rápido para agregar */}
@@ -344,12 +344,12 @@ const Calendario = () => {
         </div>
 
         {/* Panel Derecho (Principal): Calendario */}
-        <div className="flex-1 flex flex-col min-h-0 bg-surface rounded-none shadow-sm border border-border p-4">
+        <div className="flex-1 flex flex-col lg:min-h-0 min-h-[600px] bg-surface rounded-none shadow-sm border border-border p-2 md:p-4">
           {/* Header del Calendario */}
           <div className="flex justify-between items-center mb-4 flex-none">
             <div>
               <h1 className="text-2xl font-bold text-text leading-tight">{cuchubal?.nombre}</h1>
-              <p className="text-text-secondary text-sm">Cuota: <strong className="text-text">Q{cuchubal?.monto_cuota}</strong></p>
+              <p className="text-text-secondary text-sm">Cuota: <strong className="text-text">${cuchubal?.monto_cuota}</strong></p>
             </div>
             
             <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ const Calendario = () => {
                 else { setMesActual(m => m - 1); }
               }} className="btn btn-outline p-2"><ChevronLeft size={20} /></button>
               
-              <h2 className="text-lg font-semibold w-40 text-center">{meses[mesActual - 1]} {anioActual}</h2>
+              <h2 className="text-base md:text-lg font-semibold w-24 md:w-40 text-center leading-tight">{meses[mesActual - 1]}<br className="md:hidden" /> {anioActual}</h2>
               
               <button onClick={() => {
                 if (mesActual === 12) { setMesActual(1); setAnioActual(a => a + 1); } 
@@ -370,7 +370,7 @@ const Calendario = () => {
           {/* Grilla del Calendario flex */}
           <div className="flex-1 flex flex-col border border-border rounded-none overflow-hidden min-h-0">
             {/* Header días */}
-            <div className="grid grid-cols-7 bg-bg border-b border-border text-center font-semibold text-sm py-3 text-text-secondary flex-none">
+            <div className="grid grid-cols-7 bg-bg border-b border-border text-center font-semibold text-xs md:text-sm py-2 md:py-3 text-text-secondary flex-none">
               <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div>
             </div>
             {/* Celdas días que crecen para rellenar el flex restante */}
@@ -383,20 +383,20 @@ const Calendario = () => {
                   <div 
                     key={i} 
                     onClick={() => handleDayClick(day)}
-                    className={`bg-surface p-2 flex flex-col overflow-hidden ${day ? 'cursor-pointer hover:bg-blue-50/50 transition-colors' : ''} ${isHoy ? 'bg-blue-50/30' : ''}`}
+                    className={`bg-surface p-1 md:p-2 flex flex-col overflow-hidden ${day ? 'cursor-pointer hover:bg-blue-50/50 transition-colors' : ''} ${isHoy ? 'bg-blue-50/30' : ''}`}
                   >
                     {day && (
                       <>
                         <div className="flex justify-between items-center mb-1 flex-none">
-                          <span className={`text-sm font-medium w-7 h-7 flex items-center justify-center rounded-none ${isHoy ? 'bg-primary/10 text-primary font-bold' : 'text-text'}`}>
+                          <span className={`text-xs md:text-sm font-medium w-5 h-5 md:w-7 md:h-7 flex items-center justify-center rounded-none ${isHoy ? 'bg-primary/10 text-primary font-bold' : 'text-text'}`}>
                             {day}
                           </span>
                         </div>
                         
                         <div className="flex flex-col gap-1 overflow-y-auto pr-1 flex-1 custom-scrollbar">
                           {dayPagos.slice(0, 4).map(p => (
-                            <div key={p.id} className={`text-xs px-1.5 py-0.5 rounded-none flex items-center truncate ${p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover'}`}>
-                              <strong className="mr-1 truncate">{p.participante.nombre.split(' ')[0]}</strong> Q{p.monto}
+                            <div key={p.id} className={`text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 rounded-none flex items-center truncate ${p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover'}`}>
+                              <strong className="mr-1 truncate">{p.participante.nombre.split(' ')[0]}</strong> ${p.monto}
                             </div>
                           ))}
                           {dayPagos.length > 4 && (
@@ -431,8 +431,8 @@ const Calendario = () => {
                   <ul className="flex flex-col gap-2">
                     {getPagosForDay(selectedDate.getDate()).map(p => (
                       <li key={p.id} className="flex justify-between text-sm p-2 bg-surface rounded-none border border-border shadow-sm">
-                        <span><strong className="text-text">{p.participante.nombre}</strong> <span className="text-text-secondary">(Q{p.quincena})</span></span>
-                        <strong className="text-success">+ Q{p.monto}</strong>
+                        <span><strong className="text-text">{p.participante.nombre}</strong> <span className="text-text-secondary">({p.quincena})</span></span>
+                        <strong className="text-success">+ ${p.monto}</strong>
                       </li>
                     ))}
                   </ul>
@@ -491,7 +491,7 @@ const Calendario = () => {
                 )}
 
                 <div className="input-group">
-                  <label>Monto Recibido (Q)</label>
+                  <label>Monto Recibido ($)</label>
                   <input 
                     type="number" 
                     className="input" 
@@ -501,7 +501,7 @@ const Calendario = () => {
                   />
                   {modalData.tipo === 'dividido' && (
                     <p className="text-xs text-text-secondary mt-2">
-                      Se registrarán <strong className="text-text">Q{modalData.monto / 2}</strong> al 15 y <strong className="text-text">Q{modalData.monto / 2}</strong> al 30 de forma automática.
+                      Se registrarán <strong className="text-text">${modalData.monto / 2}</strong> al 15 y <strong className="text-text">${modalData.monto / 2}</strong> al 30 de forma automática.
                     </p>
                   )}
                 </div>
