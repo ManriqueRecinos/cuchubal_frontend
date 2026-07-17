@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_URL, WS_URL } from '../config';
 import Navigation from '../components/Navigation';
 import HistorialUsuario from '../components/HistorialUsuario';
-import { ChevronLeft, ChevronRight, DollarSign, History, UserPlus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, DollarSign, History, UserPlus, MessageCircle, Copy, Check, ExternalLink } from 'lucide-react';
 import Select from 'react-select';
 
 const Calendario = () => {
@@ -26,6 +26,13 @@ const Calendario = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [modalData, setModalData] = useState({ participante_id: null, monto: '', tipo: 'unico', quincena: '15', nota: '' });
   const [showHistorial, setShowHistorial] = useState(null);
+
+  // Reporte WhatsApp
+  const [showReporte, setShowReporte] = useState(false);
+  const [reporteData, setReporteData] = useState(null);
+  const [reporteLoading, setReporteLoading] = useState(false);
+  const [reporteError, setReporteError] = useState(null);
+  const [copiado, setCopiado] = useState(false);
 
   const ws = useRef(null);
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -77,6 +84,60 @@ const Calendario = () => {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  // Generar reporte de pagos del mes en formato WhatsApp
+  const generarReporteWhatsApp = async () => {
+    setReporteLoading(true);
+    setReporteError(null);
+    setCopiado(false);
+    try {
+      const res = await fetch(`${API_URL}/api/pagos/reporte/whatsapp/${id}?mes=${mesActual}&anio=${anioActual}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al generar el reporte');
+      setReporteData(data);
+      setShowReporte(true);
+    } catch (error) {
+      setReporteError(error.message || 'Error de conexión al generar el reporte.');
+    } finally {
+      setReporteLoading(false);
+    }
+  };
+
+  // Copiar el mensaje al portapapeles
+  const copiarReporte = async () => {
+    if (!reporteData?.mensaje) return;
+    try {
+      await navigator.clipboard.writeText(reporteData.mensaje);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // Fallback para navegadores sin Clipboard API
+      const textarea = document.createElement('textarea');
+      textarea.value = reporteData.mensaje;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        setCopiado(true);
+        setTimeout(() => setCopiado(false), 2000);
+      } catch {
+        setReporteError('No se pudo copiar automáticamente. Selecciona el texto manualmente.');
+      }
+      document.body.removeChild(textarea);
+    }
+  };
+
+  // Abrir WhatsApp Web/app con el mensaje precargado
+  const abrirWhatsApp = () => {
+    if (!reporteData?.mensaje) return;
+    const encoded = encodeURIComponent(reporteData.mensaje);
+    // Sin número destino: abre WhatsApp para elegir el contacto/grupo al enviar
+    window.open(`https://wa.me/?text=${encoded}`, '_blank', 'noopener,noreferrer');
   };
 
   useEffect(() => {
@@ -484,13 +545,22 @@ const Calendario = () => {
         {/* Panel Derecho (Principal): Calendario */}
         <div className="flex-1 flex flex-col lg:min-h-0 min-h-[600px] bg-surface rounded-none shadow-sm border border-border p-2 md:p-4">
           {/* Header del Calendario */}
-          <div className="flex justify-between items-center mb-4 flex-none">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 flex-none gap-3">
             <div>
               <h1 className="text-2xl font-bold text-text leading-tight">{cuchubal?.nombre}</h1>
               <p className="text-text-secondary text-sm">Cuota (Quincenal): <strong className="text-text">${cuchubal?.monto_cuota}</strong></p>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={generarReporteWhatsApp}
+                disabled={reporteLoading}
+                className="btn btn-outline px-3 py-2 text-sm flex items-center gap-1.5 disabled:opacity-50"
+                title="Generar reporte de pagos para copiar y enviar por WhatsApp"
+              >
+                <MessageCircle size={16} className="text-success" />
+                <span className="hidden sm:inline">{reporteLoading ? 'Generando...' : 'Reporte WhatsApp'}</span>
+              </button>
               <button onClick={() => {
                 if (mesActual === 1) { setMesActual(12); setAnioActual(a => a - 1); } 
                 else { setMesActual(m => m - 1); }
@@ -748,6 +818,62 @@ const Calendario = () => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Error de reporte (toast temporal) */}
+        {reporteError && !showReporte && (
+          <div className="fixed bottom-4 right-4 z-50 bg-red-50 dark:bg-red-950/40 border border-danger/40 text-danger p-4 rounded-none shadow-lg max-w-sm">
+            <div className="flex items-start gap-2">
+              <span className="text-sm font-medium flex-1">{reporteError}</span>
+              <button onClick={() => setReporteError(null)} className="text-danger hover:opacity-70 flex-none">✕</button>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Reporte WhatsApp */}
+        {showReporte && reporteData && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="card w-full max-w-lg max-h-[90vh] flex flex-col rounded-none">
+              <div className="flex justify-between items-center mb-4 flex-none">
+                <h2 className="text-xl font-bold text-text flex items-center gap-2">
+                  <MessageCircle size={20} className="text-success" />
+                  Reporte WhatsApp
+                </h2>
+                <button onClick={() => setShowReporte(false)} className="text-text-secondary hover:text-text p-1 rounded-none">✕</button>
+              </div>
+
+              <p className="text-sm text-text-secondary mb-3 flex-none">
+                Reporte de <strong className="text-text">{reporteData.resumen.mes_nombre} {reporteData.resumen.anio}</strong> —
+                {reporteData.resumen.total_pagaron}/{reporteData.resumen.total_participantes} pagaron,
+                pendiente: <strong className="text-danger">${reporteData.resumen.total_pendiente.toFixed(2)}</strong>
+              </p>
+
+              {/* Preview del mensaje */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar bg-bg dark:bg-bg border border-border p-3 mb-4 min-h-[200px]">
+                <pre className="whitespace-pre-wrap font-mono text-sm text-text leading-relaxed">{reporteData.mensaje}</pre>
+              </div>
+
+              {/* Botones de acción */}
+              <div className="flex flex-col sm:flex-row gap-3 flex-none">
+                <button
+                  onClick={copiarReporte}
+                  className={`btn flex-1 py-3 rounded-none flex items-center justify-center gap-2 ${copiado ? 'bg-success text-white' : 'btn-outline'}`}
+                >
+                  {copiado ? <><Check size={18} /> ¡Copiado!</> : <><Copy size={18} /> Copiar mensaje</>}
+                </button>
+                <button
+                  onClick={abrirWhatsApp}
+                  className="btn btn-primary flex-1 py-3 rounded-none flex items-center justify-center gap-2 bg-success hover:bg-success"
+                  style={{ backgroundColor: 'var(--color-success)' }}
+                >
+                  <ExternalLink size={18} /> Abrir WhatsApp
+                </button>
+              </div>
+              <p className="text-xs text-text-secondary mt-3 text-center flex-none">
+                "Copiar" guarda el texto en el portapapeles. "Abrir WhatsApp" abre la app con el mensaje listo para elegir destinatario.
+              </p>
             </div>
           </div>
         )}
