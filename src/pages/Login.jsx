@@ -15,23 +15,9 @@ const Login = () => {
     e.preventDefault();
     setError('');
     
-    try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        login(data.token, data.admin);
-        navigate('/dashboard');
-      } else {
-        setError(data.error);
-      }
-    } catch (err) {
-      setError('Error de conexión con el servidor.');
+    const result = await login(email, password);
+    if (!result.success) {
+      setError(result.error);
     }
   };
 
