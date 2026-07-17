@@ -42,9 +42,15 @@ const HistorialUsuario = ({ participanteId, cuchubalId, cuota, onClose }) => {
     const historial = {};
     pagosTotales.forEach(p => {
       const key = `${p.anio}-${p.mes}`;
-      if (!historial[key]) historial[key] = { 15: 0, 30: 0 };
-      if (p.quincena === '15') historial[key][15] += Number(p.monto);
-      if (p.quincena === '30') historial[key][30] += Number(p.monto);
+      if (!historial[key]) historial[key] = { 15: 0, 30: 0, notas15: [], notas30: [] };
+      if (p.quincena === '15') {
+        historial[key][15] += Number(p.monto);
+        if (p.nota) historial[key].notas15.push(p.nota);
+      }
+      if (p.quincena === '30') {
+        historial[key][30] += Number(p.monto);
+        if (p.nota) historial[key].notas30.push(p.nota);
+      }
       if (p.quincena === 'mensual') {
          historial[key][15] += Number(p.monto) / 2;
          historial[key][30] += Number(p.monto) / 2;
@@ -58,31 +64,39 @@ const HistorialUsuario = ({ participanteId, cuchubalId, cuota, onClose }) => {
       const [anio, mes] = key.split('-');
       const p15 = historial[key][15];
       const p30 = historial[key][30];
+      const notas15 = historial[key].notas15;
+      const notas30 = historial[key].notas30;
       const nombreMes = new Date(anio, mes - 1).toLocaleString('es', { month: 'long' });
 
       items.push(
         <div key={key} className="py-4 border-b border-border last:border-0">
           <h4 className="capitalize mb-3 font-semibold text-text">{nombreMes} {anio}</h4>
           <div className="flex flex-col sm:flex-row gap-4 text-sm">
-            <div className="flex-1 p-3 bg-bg rounded-lg flex items-center justify-between border border-border">
-              <span className="text-text-secondary">1ra Quincena:</span>
-              {p15 >= cuotaQ ? (
-                <span className="text-success flex items-center gap-1.5 font-medium"><CheckCircle size={16}/> Pagado</span>
-              ) : (
-                <span className="text-danger flex items-center gap-1 font-semibold">
-                  <AlertCircle size={16}/> {p15 > 0 ? `$${p15}` : 'No pagado'}
-                </span>
-              )}
+            <div className="flex-1 p-3 bg-bg rounded-lg flex flex-col justify-center border border-border">
+              <div className="flex justify-between items-center">
+                <span className="text-text-secondary">1ra Quincena:</span>
+                {p15 >= cuotaQ ? (
+                  <span className="text-success flex items-center gap-1.5 font-medium"><CheckCircle size={16}/> Pagado</span>
+                ) : (
+                  <span className={p15 > 0 ? "text-yellow-600 flex items-center gap-1 font-semibold" : "text-danger flex items-center gap-1 font-semibold"}>
+                    <AlertCircle size={16}/> {p15 > 0 ? `$${p15} (Parcial)` : 'No pagado'}
+                  </span>
+                )}
+              </div>
+              {notas15.length > 0 && <p className="text-xs text-text-secondary mt-2 border-t pt-1 border-border border-dashed italic">Nota: {notas15.join(' | ')}</p>}
             </div>
-            <div className="flex-1 p-3 bg-bg rounded-lg flex items-center justify-between border border-border">
-              <span className="text-text-secondary">2da Quincena:</span>
-              {p30 >= cuotaQ ? (
-                <span className="text-success flex items-center gap-1.5 font-medium"><CheckCircle size={16}/> Pagado</span>
-              ) : (
-                <span className="text-danger flex items-center gap-1 font-semibold">
-                  <AlertCircle size={16}/> {p30 > 0 ? `$${p30}` : 'No pagado'}
-                </span>
-              )}
+            <div className="flex-1 p-3 bg-bg rounded-lg flex flex-col justify-center border border-border">
+              <div className="flex justify-between items-center">
+                <span className="text-text-secondary">2da Quincena:</span>
+                {p30 >= cuotaQ ? (
+                  <span className="text-success flex items-center gap-1.5 font-medium"><CheckCircle size={16}/> Pagado</span>
+                ) : (
+                  <span className={p30 > 0 ? "text-yellow-600 flex items-center gap-1 font-semibold" : "text-danger flex items-center gap-1 font-semibold"}>
+                    <AlertCircle size={16}/> {p30 > 0 ? `$${p30} (Parcial)` : 'No pagado'}
+                  </span>
+                )}
+              </div>
+              {notas30.length > 0 && <p className="text-xs text-text-secondary mt-2 border-t pt-1 border-border border-dashed italic">Nota: {notas30.join(' | ')}</p>}
             </div>
           </div>
         </div>

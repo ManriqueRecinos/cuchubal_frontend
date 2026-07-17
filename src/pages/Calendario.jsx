@@ -23,7 +23,7 @@ const Calendario = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-  const [modalData, setModalData] = useState({ participante_id: null, monto: '', tipo: 'unico', quincena: '15' });
+  const [modalData, setModalData] = useState({ participante_id: null, monto: '', tipo: 'unico', quincena: '15', nota: '' });
   const [showHistorial, setShowHistorial] = useState(null);
 
   const ws = useRef(null);
@@ -82,6 +82,34 @@ const Calendario = () => {
       if (ws.current) ws.current.close();
     };
   }, [id, mesActual, anioActual]);
+
+  useEffect(() => {
+    if (showModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showModal]);
+
+  // Cálculo del monto máximo a pagar basado en lo que ya abonó en el mes
+  const getMaxAmount = (pId, tipo, quincena) => {
+    if (!cuchubal || !pId) return 0;
+    const pagosMesUsuario = pagos.filter(px => px.participante_id === pId);
+    const sum15 = pagosMesUsuario.filter(px => px.quincena === '15').reduce((s, px) => s + Number(px.monto), 0);
+    const sum30 = pagosMesUsuario.filter(px => px.quincena === '30').reduce((s, px) => s + Number(px.monto), 0);
+    
+    let max = 0;
+    if (tipo === 'unico') {
+      const sumQ = quincena === '15' ? sum15 : sum30;
+      max = (Number(cuchubal.monto_cuota) / 2) - sumQ;
+    } else {
+      max = Number(cuchubal.monto_cuota) - sum15 - sum30;
+    }
+    return Math.max(0, max).toFixed(2);
+  };
 
   const handleAgregarParticipante = async (e) => {
     e.preventDefault();
@@ -158,7 +186,7 @@ const Calendario = () => {
     setSelectedDate(dateObj);
     
     const defaultQuincena = day <= 15 ? '15' : '30';
-    setModalData(prev => ({ ...prev, participante_id: null, quincena: defaultQuincena, monto: cuchubal?.monto_cuota || '' }));
+    setModalData({ participante_id: null, monto: '', tipo: 'unico', quincena: defaultQuincena, nota: '' });
     setShowModal(true);
   };
 
@@ -179,6 +207,7 @@ const Calendario = () => {
         monto: modalData.tipo === 'unico' ? modalData.monto : undefined,
         montoTotal: modalData.tipo === 'dividido' ? modalData.monto : undefined,
         quincena: modalData.tipo === 'unico' ? modalData.quincena : undefined,
+        nota: modalData.nota
       };
 
       const res = await fetch(`${API_URL}/api/pagos${endpoint}`, {
@@ -191,7 +220,8 @@ const Calendario = () => {
       });
 
       if (res.ok) {
-        setModalData(prev => ({ ...prev, monto: cuchubal?.monto_cuota || '', tipo: 'unico', participante_id: null }));
+        setModalData(prev => ({ ...prev, monto: '', nota: '', participante_id: null }));
+        setShowModal(false);
       }
     } catch (error) {
       console.error(error);
@@ -253,6 +283,7 @@ const Calendario = () => {
   if (loading) return <div className="h-screen flex items-center justify-center bg-bg"><p className="text-text-secondary text-lg">Cargando...</p></div>;
 
   const morosos = getMorosos();
+  const cuotaQ = cuchubal ? Number(cuchubal.monto_cuota) / 2 : 0;
   
   // Filtrar participantes que ya tienen un pago en la fecha seleccionada
   const pagosDelDia = selectedDate ? getPagosForDay(selectedDate.getDate()) : [];
@@ -401,11 +432,18 @@ const Calendario = () => {
                         </div>
                         
                         <div className="flex flex-col gap-1 overflow-y-auto pr-1 flex-1 custom-scrollbar">
-                          {dayPagos.slice(0, 4).map(p => (
-                            <div key={p.id} className={`text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 rounded-none flex items-center truncate ${p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover'}`}>
-                              <strong className="mr-1 truncate">{p.participante.nombre.split(' ')[0]}</strong> ${p.monto}
-                            </div>
-                          ))}
+                          {dayPagos.slice(0, 4).map(p => {
+                            const pagosUserQ = pagos.filter(px => px.participante_id === p.participante_id && px.quincena === p.quincena).reduce((s, px) => s + Number(px.monto), 0);
+                            const isPartial = pagosUserQ < cuotaQ;
+                            let bgClass = p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover';
+                            if (isPartial) bgClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+                            
+                            return (
+                              <div key={p.id} className={`text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 rounded-none flex items-center truncate ${bgClass}`}>
+                                <strong className="mr-1 truncate">{p.participante.nombre.split(' ')[0]}</strong> ${p.monto}
+                              </div>
+                            );
+                          })}
                           {dayPagos.length > 4 && (
                             <div className="text-[10px] text-text-secondary text-center mt-1">
                               +{dayPagos.length - 4} más
@@ -454,7 +492,10 @@ const Calendario = () => {
                   <Select
                     options={selectOptions}
                     value={modalData.participante_id}
-                    onChange={(selectedOption) => setModalData({...modalData, participante_id: selectedOption})}
+                    onChange={(selectedOption) => {
+                      const maxA = selectedOption ? getMaxAmount(selectedOption.value, modalData.tipo, modalData.quincena) : '';
+                      setModalData({...modalData, participante_id: selectedOption, monto: maxA, nota: ''});
+                    }}
                     placeholder="Escribe para buscar..."
                     isClearable
                     required
@@ -476,7 +517,11 @@ const Calendario = () => {
                   <select 
                     className="input" 
                     value={modalData.tipo} 
-                    onChange={e => setModalData({...modalData, tipo: e.target.value})}
+                    onChange={e => {
+                      const newTipo = e.target.value;
+                      const maxA = modalData.participante_id ? getMaxAmount(modalData.participante_id.value, newTipo, modalData.quincena) : '';
+                      setModalData({...modalData, tipo: newTipo, monto: maxA, nota: ''});
+                    }}
                   >
                     <option value="unico">Pago a una quincena</option>
                     <option value="dividido">Pago mensual completo (dividir en 15 y 30)</option>
@@ -489,7 +534,11 @@ const Calendario = () => {
                     <select 
                       className="input" 
                       value={modalData.quincena} 
-                      onChange={e => setModalData({...modalData, quincena: e.target.value})}
+                      onChange={e => {
+                        const newQ = e.target.value;
+                        const maxA = modalData.participante_id ? getMaxAmount(modalData.participante_id.value, modalData.tipo, newQ) : '';
+                        setModalData({...modalData, quincena: newQ, monto: maxA, nota: ''});
+                      }}
                     >
                       <option value="15">Día 15</option>
                       <option value="30">Día 30 (Fin de mes)</option>
@@ -504,14 +553,36 @@ const Calendario = () => {
                     className="input" 
                     value={modalData.monto} 
                     onChange={e => setModalData({...modalData, monto: e.target.value})} 
-                    min="1" step="0.01" required 
+                    min="1" 
+                    max={modalData.participante_id ? getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena) : ""}
+                    step="0.01" 
+                    required 
                   />
+                  {modalData.participante_id && (
+                    <p className="text-xs text-text-secondary mt-1">
+                      Monto máximo pendiente: <strong className="text-text">${getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena)}</strong>
+                    </p>
+                  )}
                   {modalData.tipo === 'dividido' && (
                     <p className="text-xs text-text-secondary mt-2">
                       Se registrarán <strong className="text-text">${modalData.monto / 2}</strong> al 15 y <strong className="text-text">${modalData.monto / 2}</strong> al 30 de forma automática.
                     </p>
                   )}
                 </div>
+
+                {modalData.participante_id && modalData.monto && Number(modalData.monto) < Number(getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena)) && (
+                  <div className="input-group mt-4">
+                    <label>Razón / Descripción del abono parcial</label>
+                    <textarea 
+                      className="input py-2 text-sm" 
+                      rows="2"
+                      value={modalData.nota} 
+                      onChange={e => setModalData({...modalData, nota: e.target.value})} 
+                      placeholder="Ej: Solo depositó $10"
+                      required
+                    ></textarea>
+                  </div>
+                )}
 
                 <div className="flex gap-4 mt-8">
                   <button type="submit" className="btn btn-primary flex-1 py-3 rounded-none">
