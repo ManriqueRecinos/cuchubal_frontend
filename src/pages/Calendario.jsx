@@ -562,7 +562,7 @@ const Calendario = () => {
                         <ul className="mb-2 space-y-1">
                           {pagosAfectados.map(px => (
                             <li key={px.id} className="flex justify-between text-xs bg-white p-1.5 border border-border">
-                              <span>Abono el {new Date(px.fecha_pago).toLocaleDateString()} {px.quincena === '15' ? '(Q15)' : px.quincena === '30' ? '(Q30)' : ''}</span>
+                              <span>Abono el {new Date(px.fecha_pago).toLocaleDateString()} {px.quincena === '15' ? '(1ra Quin)' : px.quincena === '30' ? '(2da Quin)' : ''}</span>
                               <strong className="text-success">${px.monto}</strong>
                             </li>
                           ))}

@@ -97,7 +97,7 @@ const CuchubalView = () => {
         <div className="header" style={{ alignItems: 'flex-start' }}>
           <div>
             <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '0.5rem' }}>{cuchubal.nombre}</h1>
-            <p style={{ color: 'var(--text-secondary)' }}>Cuota: <strong>Q{cuchubal.monto_cuota}</strong></p>
+            <p style={{ color: 'var(--text-secondary)' }}>Cuota: <strong>${cuchubal.monto_cuota}</strong></p>
           </div>
           <Link to={`/cuchubal/${id}/calendario`} className="btn btn-primary" style={{ padding: '0.75rem 1.5rem' }}>
             <Calendar size={18} style={{ marginRight: '0.5rem' }} /> Ver Calendario de Pagos

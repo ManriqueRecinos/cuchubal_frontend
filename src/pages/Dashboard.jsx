@@ -82,7 +82,7 @@ const Dashboard = () => {
                 </p>
                 <div className="mt-auto flex justify-between items-center border-t border-border pt-4">
                   <span className="font-semibold text-lg">
-                    Q{c.monto_cuota} <small className="text-text-secondary font-normal text-sm">/ cuota</small>
+                    ${c.monto_cuota} <small className="text-text-secondary font-normal text-sm">/ cuota</small>
                   </span>
                   <Link to={`/cuchubal/${c.id}`} className="btn btn-outline py-1.5 px-4 text-sm">Ver</Link>
                 </div>
@@ -105,7 +105,7 @@ const Dashboard = () => {
                   <input type="text" className="input" value={nuevoNombre} onChange={e => setNuevoNombre(e.target.value)} required />
                 </div>
                 <div className="input-group">
-                  <label>Monto de la cuota (Q)</label>
+                  <label>Monto de la cuota ($)</label>
                   <input type="number" className="input" value={nuevoMonto} onChange={e => setNuevoMonto(e.target.value)} min="1" step="0.01" required />
                 </div>
                 <div className="flex gap-4 mt-8">
