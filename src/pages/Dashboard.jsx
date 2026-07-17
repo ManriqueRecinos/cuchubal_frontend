@@ -84,7 +84,7 @@ const Dashboard = () => {
                   <span className="font-semibold text-lg">
                     ${c.monto_cuota} <small className="text-text-secondary font-normal text-sm">/ cuota</small>
                   </span>
-                  <Link to={`/cuchubal/${c.id}`} className="btn btn-outline py-1.5 px-4 text-sm">Ver</Link>
+                  <Link to={`/app/${c.id}`} className="btn btn-outline py-1.5 px-4 text-sm">Ver</Link>
                 </div>
               </div>
             ))}

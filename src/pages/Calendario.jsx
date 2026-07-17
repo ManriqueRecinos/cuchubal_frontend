@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { API_URL, WS_URL } from '../config';
 import Navigation from '../components/Navigation';
@@ -18,6 +18,7 @@ const Calendario = () => {
   const [cuchubal, setCuchubal] = useState(null);
   const [pagos, setPagos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   
   const [nuevoNombre, setNuevoNombre] = useState('');
 
@@ -30,12 +31,25 @@ const Calendario = () => {
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
   const loadData = async () => {
+    // Validación temprana: el id debe ser numérico entero válido.
+    const numericId = Number(id);
+    if (!id || !Number.isInteger(numericId) || numericId <= 0) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     try {
       const resC = await fetch(`${API_URL}/api/cuchubales`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const dataC = await resC.json();
-      const currentC = dataC.find(c => c.id === Number(id));
+      const currentC = dataC.find(c => c.id === numericId);
+      // Si no existe o no pertenece al usuario, redirigir al dashboard.
+      if (!currentC) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
       setCuchubal(currentC);
 
       const resP = await fetch(`${API_URL}/api/participantes/cuchubal/${id}`, {
@@ -47,6 +61,7 @@ const Calendario = () => {
       loadPagos();
     } catch (error) {
       console.error(error);
+      setNotFound(true);
     } finally {
       setLoading(false);
     }
@@ -280,6 +295,7 @@ const Calendario = () => {
     });
   };
 
+  if (notFound) return <Navigate to="/dashboard" replace />;
   if (loading) return <div className="h-screen flex items-center justify-center bg-bg"><p className="text-text-secondary text-lg">Cargando...</p></div>;
 
   const getFechaRestriccionError = () => {
