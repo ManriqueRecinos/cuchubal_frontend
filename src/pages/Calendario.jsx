@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_URL, WS_URL } from '../config';
 import Navigation from '../components/Navigation';
 import HistorialUsuario from '../components/HistorialUsuario';
-import { ChevronLeft, ChevronRight, DollarSign, History, UserPlus, MessageCircle, Copy, Check, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, DollarSign, History, UserPlus, MessageCircle, Copy, Check, ExternalLink, Pencil } from 'lucide-react';
 import Select from 'react-select';
 
 const Calendario = () => {
@@ -33,6 +33,11 @@ const Calendario = () => {
   const [reporteLoading, setReporteLoading] = useState(false);
   const [reporteError, setReporteError] = useState(null);
   const [copiado, setCopiado] = useState(false);
+
+  // Edición de participante
+  const [editParticipante, setEditParticipante] = useState(null);
+  const [editNombre, setEditNombre] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
 
   const ws = useRef(null);
   const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -233,6 +238,44 @@ const Calendario = () => {
       setParticipantes(dataP);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const abrirEdicionParticipante = (p) => {
+    setEditParticipante(p);
+    setEditNombre(p.nombre);
+  };
+
+  const handleGuardarEdicion = async (e) => {
+    e.preventDefault();
+    if (!editNombre.trim()) return;
+    setEditLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/participantes/${editParticipante.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ nombre: editNombre.trim() })
+      });
+      if (res.ok) {
+        setEditParticipante(null);
+        setEditNombre('');
+        const resP = await fetch(`${API_URL}/api/participantes/cuchubal/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const dataP = await resP.json();
+        setParticipantes(dataP);
+      } else {
+        const errData = await res.json();
+        alert(errData.error || 'Error al actualizar el nombre.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert('Error de conexión al actualizar.');
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -527,6 +570,9 @@ const Calendario = () => {
                       </div>
                    </div>
                    <div className="flex gap-1.5 flex-none">
+                     <button onClick={() => abrirEdicionParticipante(p)} className="btn btn-outline px-2 py-1 bg-surface dark:bg-surface" title="Editar nombre">
+                       <Pencil size={14} />
+                     </button>
                      <button onClick={() => setShowHistorial(p.id)} className="btn btn-outline px-2 py-1 bg-surface dark:bg-surface" title="Ver Historial">
                        <History size={14} />
                      </button>
@@ -875,6 +921,40 @@ const Calendario = () => {
               <p className="text-xs text-text-secondary mt-3 text-center flex-none">
                 "Copiar" guarda el texto en el portapapeles. "Abrir WhatsApp" abre la app con el mensaje listo para elegir destinatario.
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Edición de Participante */}
+        {editParticipante && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+            <div className="card w-full max-w-md rounded-none">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-text">Editar participante</h2>
+                <button onClick={() => { setEditParticipante(null); setEditNombre(''); }} className="text-text-secondary hover:text-text p-1 rounded-none">✕</button>
+              </div>
+              <form onSubmit={handleGuardarEdicion}>
+                <div className="input-group">
+                  <label>Nombre del participante</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={editNombre}
+                    onChange={e => setEditNombre(e.target.value)}
+                    required
+                    autoFocus
+                    placeholder="Nombre..."
+                  />
+                </div>
+                <div className="flex gap-4 mt-6">
+                  <button type="button" className="btn btn-outline flex-1 py-3" onClick={() => { setEditParticipante(null); setEditNombre(''); }}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary flex-1 py-3" disabled={editLoading || !editNombre.trim()}>
+                    {editLoading ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
