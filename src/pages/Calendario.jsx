@@ -315,6 +315,59 @@ const Calendario = () => {
     .filter(p => p.activo)
     .map(p => ({ value: p.id, label: p.nombre }));
 
+  // Estilos del selectpicker (react-select) basados en variables CSS del tema,
+  // de modo que se adaptan automáticamente al modo claro/oscuro sin re-render.
+  const selectStyles = {
+    control: (base, state) => ({
+      ...base,
+      borderRadius: '0',
+      backgroundColor: 'var(--color-bg)',
+      borderColor: state.isFocused ? 'var(--color-primary)' : 'var(--color-border)',
+      padding: '2px',
+      minHeight: '42px',
+      boxShadow: state.isFocused ? '0 0 0 2px var(--color-primary)' : 'none',
+      '&:hover': { borderColor: 'var(--color-primary)' },
+    }),
+    menu: (base) => ({
+      ...base,
+      borderRadius: '0',
+      backgroundColor: 'var(--color-surface)',
+      border: '1px solid var(--color-border)',
+      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.25)',
+      zIndex: 9999,
+    }),
+    menuList: (base) => ({
+      ...base,
+      borderRadius: '0',
+      padding: '4px',
+    }),
+    option: (base, state) => ({
+      ...base,
+      borderRadius: '0',
+      backgroundColor: state.isSelected
+        ? 'var(--color-primary)'
+        : state.isFocused
+          ? 'var(--color-bg)'
+          : 'transparent',
+      color: state.isSelected ? '#ffffff' : 'var(--color-text)',
+      '&:active': { backgroundColor: 'var(--color-bg)' },
+    }),
+    singleValue: (base) => ({ ...base, color: 'var(--color-text)' }),
+    input: (base) => ({ ...base, color: 'var(--color-text)' }),
+    placeholder: (base) => ({ ...base, color: 'var(--color-text-secondary)' }),
+    dropdownIndicator: (base) => ({
+      ...base,
+      color: 'var(--color-text-secondary)',
+      '&:hover': { color: 'var(--color-text)' },
+    }),
+    clearIndicator: (base) => ({
+      ...base,
+      color: 'var(--color-text-secondary)',
+      '&:hover': { color: 'var(--color-text)' },
+    }),
+    noOptionsMessage: (base) => ({ ...base, color: 'var(--color-text-secondary)' }),
+  };
+
   return (
     <div className="min-h-screen lg:h-screen flex flex-col bg-bg lg:overflow-hidden">
       <div className="flex-none sticky top-0 z-[60]">
@@ -328,25 +381,34 @@ const Calendario = () => {
         <div className="w-full lg:w-[360px] flex-none flex flex-col gap-4 lg:h-full lg:min-h-0 h-auto">
           
           {/* Alertas de Mora */}
-          <div className={`card flex flex-col p-4 lg:h-[280px] h-[200px] flex-none border-2 rounded-none ${morosos.length > 0 ? 'border-danger/30 bg-red-50/10' : 'border-border'}`}>
-            <h3 className={`text-lg font-bold flex items-center gap-2 mb-4 flex-none ${morosos.length > 0 ? 'text-danger' : 'text-text'}`}>
-              En Mora ({morosos.length})
-            </h3>
+          <div className={`card flex flex-col p-4 lg:h-[300px] h-[220px] flex-none border-2 rounded-none transition-colors ${morosos.length > 0 ? 'border-danger/40 bg-red-50/40 dark:bg-red-950/20' : 'border-border'}`}>
+            <div className="flex items-center justify-between mb-3 flex-none">
+              <h3 className={`text-lg font-bold flex items-center gap-2 ${morosos.length > 0 ? 'text-danger' : 'text-text'}`}>
+                En Mora ({morosos.length})
+              </h3>
+              {morosos.length > 0 && (
+                <span className="text-xs font-semibold px-2 py-0.5 rounded-none bg-danger/15 text-danger">
+                  {morosos.length} {morosos.length === 1 ? 'caso' : 'casos'}
+                </span>
+              )}
+            </div>
             
             {morosos.length === 0 ? (
-              <p className="text-text-secondary text-sm">Nadie está en mora para este mes. ¡Excelente!</p>
+              <div className="flex-1 flex items-center justify-center">
+                <p className="text-text-secondary text-sm text-center">Nadie está en mora para este mes.<br />¡Excelente!</p>
+              </div>
             ) : (
-              <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-3 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-2.5 custom-scrollbar">
                 {morosos.map(m => (
-                  <div key={m.participante.id} className="bg-red-50/50 p-3 rounded-none border border-danger/20">
-                    <div className="flex justify-between items-start mb-1">
-                      <strong className="text-sm text-text truncate pr-2">{m.participante.nombre}</strong>
-                      <button onClick={() => setShowHistorial(m.participante.id)} className="text-text-secondary hover:text-text bg-white p-1 rounded-none border border-border shadow-sm">
+                  <div key={m.participante.id} className="bg-red-50/60 dark:bg-red-950/30 p-3 rounded-none border border-danger/25 dark:border-danger/30">
+                    <div className="flex justify-between items-start mb-1.5 gap-2">
+                      <strong className="text-sm text-text truncate">{m.participante.nombre}</strong>
+                      <button onClick={() => setShowHistorial(m.participante.id)} className="text-text-secondary hover:text-text bg-surface dark:bg-surface p-1 rounded-none border border-border shadow-sm flex-none" title="Ver historial">
                         <History size={14} />
                       </button>
                     </div>
                     <div className="flex justify-between items-end">
-                      <p className="text-xs text-danger">{m.razon}</p>
+                      <p className="text-xs text-danger font-medium">{m.razon}</p>
                       <p className="text-sm font-bold text-text">${m.deuda}</p>
                     </div>
                   </div>
@@ -378,7 +440,7 @@ const Calendario = () => {
               {participantes.map(p => (
                  <div key={p.id} className={`flex justify-between items-center p-3 border rounded-none transition-opacity ${p.activo ? 'border-border bg-transparent' : 'border-border bg-bg opacity-60'}`}>
                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-8 h-8 rounded-none bg-blue-50 text-primary flex items-center justify-center font-bold text-sm flex-none">
+                      <div className="w-8 h-8 rounded-none bg-blue-50 dark:bg-primary/20 text-primary flex items-center justify-center font-bold text-sm flex-none">
                         {p.nombre.charAt(0).toUpperCase()}
                       </div>
                       <div className="truncate pr-2">
@@ -387,10 +449,10 @@ const Calendario = () => {
                       </div>
                    </div>
                    <div className="flex gap-1.5 flex-none">
-                     <button onClick={() => setShowHistorial(p.id)} className="btn btn-outline px-2 py-1 bg-white" title="Ver Historial">
+                     <button onClick={() => setShowHistorial(p.id)} className="btn btn-outline px-2 py-1 bg-surface dark:bg-surface" title="Ver Historial">
                        <History size={14} />
                      </button>
-                     <button onClick={() => handleToggleActivo(p.id, p.activo)} className="btn btn-outline px-2 py-1 bg-white" title={p.activo ? 'Desactivar' : 'Activar'}>
+                     <button onClick={() => handleToggleActivo(p.id, p.activo)} className="btn btn-outline px-2 py-1 bg-surface dark:bg-surface" title={p.activo ? 'Desactivar' : 'Activar'}>
                        {p.activo ? '✕' : '✓'}
                      </button>
                    </div>
@@ -443,7 +505,7 @@ const Calendario = () => {
                   <div 
                     key={i} 
                     onClick={() => handleDayClick(day)}
-                    className={`bg-surface p-1 md:p-2 flex flex-col overflow-hidden ${day ? 'cursor-pointer hover:bg-blue-50/50 transition-colors' : ''} ${isHoy ? 'bg-blue-50/30' : ''}`}
+                    className={`bg-surface p-1 md:p-2 flex flex-col overflow-hidden ${day ? 'cursor-pointer hover:bg-blue-50/50 dark:hover:bg-primary/10 transition-colors' : ''} ${isHoy ? 'bg-blue-50/30 dark:bg-primary/15' : ''}`}
                   >
                     {day && (
                       <>
@@ -465,8 +527,10 @@ const Calendario = () => {
                             return groupedDayPagos.slice(0, 4).map(p => {
                               const pagosUserQ = pagos.filter(px => px.participante_id === p.participante_id && px.quincena === p.quincena).reduce((s, px) => s + Number(px.monto), 0);
                               const isPartial = pagosUserQ < cuotaQ;
-                              let bgClass = p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover';
-                              if (isPartial) bgClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+                              let bgClass = p.quincena === '15'
+                                ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300'
+                                : 'bg-blue-100 text-primary-hover dark:bg-blue-900/40 dark:text-blue-300';
+                              if (isPartial) bgClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-900/40 dark:text-yellow-300 dark:border-yellow-800';
                               
                               return (
                                 <div key={`${p.participante_id}-${p.quincena}`} className={`text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 rounded-none flex items-center truncate ${bgClass}`}>
@@ -538,16 +602,7 @@ const Calendario = () => {
                     placeholder="Escribe para buscar..."
                     isClearable
                     required
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        borderRadius: '0',
-                        borderColor: '#e2e8f0',
-                        padding: '2px',
-                        boxShadow: 'none',
-                        '&:hover': { borderColor: '#3b82f6' }
-                      })
-                    }}
+                    styles={selectStyles}
                   />
                 </div>
 
@@ -587,7 +642,7 @@ const Calendario = () => {
                 
                 {/* Mini Historial del Participante Seleccionado */}
                 {modalData.participante_id && (
-                  <div className="bg-blue-50/50 border border-blue-100 p-3 mb-4 text-sm text-text-secondary">
+                  <div className="bg-blue-50/50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-900/50 p-3 mb-4 text-sm text-text-secondary">
                     <p className="font-semibold text-primary mb-2">
                       Estado de pagos ({modalData.tipo === 'unico' ? `Quincena ${modalData.quincena}` : 'Mes Completo'}):
                     </p>
@@ -604,7 +659,7 @@ const Calendario = () => {
                       return (
                         <ul className="mb-2 space-y-1">
                           {pagosAfectados.map(px => (
-                            <li key={px.id} className="flex justify-between text-xs bg-white p-1.5 border border-border">
+                            <li key={px.id} className="flex justify-between text-xs bg-surface dark:bg-surface p-1.5 border border-border">
                               <span>Abono el {new Date(px.fecha_pago).toLocaleDateString()} {px.quincena === '15' ? '(1ra Quin)' : px.quincena === '30' ? '(2da Quin)' : ''}</span>
                               <strong className="text-success">${px.monto}</strong>
                             </li>
@@ -612,7 +667,7 @@ const Calendario = () => {
                         </ul>
                       );
                     })()}
-                    <div className="mt-2 text-right border-t border-blue-200 pt-2">
+                    <div className="mt-2 text-right border-t border-blue-200 dark:border-blue-900/50 pt-2">
                       <strong className="text-danger">
                         Faltante: ${getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena)}
                       </strong>
@@ -621,7 +676,7 @@ const Calendario = () => {
                 )}
 
                 {getFechaRestriccionError() && (
-                  <div className="bg-red-50 text-danger p-3 mb-4 text-sm font-semibold border border-red-200">
+                  <div className="bg-red-50 dark:bg-red-950/30 text-danger p-3 mb-4 text-sm font-semibold border border-red-200 dark:border-red-900/50">
                     {getFechaRestriccionError()}
                   </div>
                 )}
@@ -701,8 +756,11 @@ const Calendario = () => {
           background: transparent;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #cbd5e1;
+          background-color: var(--color-border);
           border-radius: 0px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: var(--color-text-secondary);
         }
       `}</style>
     </div>
