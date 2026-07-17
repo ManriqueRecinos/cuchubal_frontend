@@ -104,9 +104,9 @@ const Calendario = () => {
     let max = 0;
     if (tipo === 'unico') {
       const sumQ = quincena === '15' ? sum15 : sum30;
-      max = (Number(cuchubal.monto_cuota) / 2) - sumQ;
+      max = Number(cuchubal.monto_cuota) - sumQ;
     } else {
-      max = Number(cuchubal.monto_cuota) - sum15 - sum30;
+      max = (Number(cuchubal.monto_cuota) * 2) - sum15 - sum30;
     }
     return Math.max(0, max).toFixed(2);
   };
@@ -236,7 +236,7 @@ const Calendario = () => {
     if (!cuchubal) return [];
     
     const cuota = cuchubal.monto_cuota;
-    const cuotaQuincenal = cuota / 2;
+    const cuotaQuincenal = Number(cuota);
     const morosos = [];
 
     participantes.filter(p => p.activo).forEach(p => {
@@ -283,7 +283,7 @@ const Calendario = () => {
   if (loading) return <div className="h-screen flex items-center justify-center bg-bg"><p className="text-text-secondary text-lg">Cargando...</p></div>;
 
   const morosos = getMorosos();
-  const cuotaQ = cuchubal ? Number(cuchubal.monto_cuota) / 2 : 0;
+  const cuotaQ = cuchubal ? Number(cuchubal.monto_cuota) : 0;
   
   const selectOptions = participantes
     .filter(p => p.activo)
@@ -383,7 +383,7 @@ const Calendario = () => {
           <div className="flex justify-between items-center mb-4 flex-none">
             <div>
               <h1 className="text-2xl font-bold text-text leading-tight">{cuchubal?.nombre}</h1>
-              <p className="text-text-secondary text-sm">Cuota: <strong className="text-text">${cuchubal?.monto_cuota}</strong></p>
+              <p className="text-text-secondary text-sm">Cuota (Quincenal): <strong className="text-text">${cuchubal?.monto_cuota}</strong></p>
             </div>
             
             <div className="flex items-center gap-2">

@@ -57,7 +57,7 @@ const HistorialUsuario = ({ participanteId, cuchubalId, cuota, onClose }) => {
       }
     });
 
-    const cuotaQ = Number(cuota) / 2;
+    const cuotaQ = Number(cuota);
     const items = [];
 
     Object.keys(historial).sort((a,b) => b.localeCompare(a)).forEach(key => {
