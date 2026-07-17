@@ -402,6 +402,7 @@ const Calendario = () => {
       borderColor: state.isFocused ? 'var(--color-primary)' : 'var(--color-border)',
       padding: '2px',
       minHeight: '42px',
+      fontSize: '16px',
       boxShadow: state.isFocused ? '0 0 0 2px var(--color-primary)' : 'none',
       '&:hover': { borderColor: 'var(--color-primary)' },
     }),
@@ -502,7 +503,7 @@ const Calendario = () => {
             <form onSubmit={handleAgregarParticipante} className="flex gap-2 mb-4 flex-none">
               <input 
                 type="text" 
-                className="input py-1.5 text-sm" 
+                className="input py-1.5" 
                 value={nuevoNombre} 
                 onChange={e => setNuevoNombre(e.target.value)} 
                 required 
@@ -791,7 +792,7 @@ const Calendario = () => {
                   <div className="input-group mt-4">
                     <label>Razón / Descripción del abono parcial</label>
                     <textarea 
-                      className="input py-2 text-sm" 
+                      className="input py-2" 
                       rows="2"
                       value={modalData.nota} 
                       onChange={e => setModalData({...modalData, nota: e.target.value})} 
