@@ -291,7 +291,7 @@ const Calendario = () => {
 
   return (
     <div className="min-h-screen lg:h-screen flex flex-col bg-bg lg:overflow-hidden">
-      <div className="flex-none">
+      <div className="flex-none sticky top-0 z-[60]">
         <Navigation />
       </div>
       
