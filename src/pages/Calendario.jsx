@@ -282,6 +282,32 @@ const Calendario = () => {
 
   if (loading) return <div className="h-screen flex items-center justify-center bg-bg"><p className="text-text-secondary text-lg">Cargando...</p></div>;
 
+  const getFechaRestriccionError = () => {
+    if (!modalData.participante_id || !selectedDate) return null;
+    const pId = modalData.participante_id.value;
+    const misPagos = pagos.filter(px => px.participante_id === pId);
+    
+    if (modalData.tipo === 'unico') {
+      const pagoPrevio = misPagos.find(px => px.quincena === modalData.quincena);
+      if (pagoPrevio) {
+        const fp = new Date(pagoPrevio.fecha_pago);
+        if (fp.getDate() !== selectedDate.getDate()) {
+          return `Este participante ya tiene un abono previo el día ${fp.getDate()}. Para completar su cuota, debes hacer clic en ese día del calendario.`;
+        }
+      }
+    } else {
+      const pago15 = misPagos.find(px => px.quincena === '15');
+      const pago30 = misPagos.find(px => px.quincena === '30');
+      if (pago15 && new Date(pago15.fecha_pago).getDate() !== selectedDate.getDate()) {
+        return `Ya tiene un abono para la Q15 el día ${new Date(pago15.fecha_pago).getDate()}. Debes hacer clic en ese día.`;
+      }
+      if (pago30 && new Date(pago30.fecha_pago).getDate() !== selectedDate.getDate()) {
+        return `Ya tiene un abono para la Q30 el día ${new Date(pago30.fecha_pago).getDate()}. Debes hacer clic en ese día.`;
+      }
+    }
+    return null;
+  };
+
   const morosos = getMorosos();
   const cuotaQ = cuchubal ? Number(cuchubal.monto_cuota) : 0;
   
@@ -428,23 +454,35 @@ const Calendario = () => {
                         </div>
                         
                         <div className="flex flex-col gap-1 overflow-y-auto pr-1 flex-1 custom-scrollbar">
-                          {dayPagos.slice(0, 4).map(p => {
-                            const pagosUserQ = pagos.filter(px => px.participante_id === p.participante_id && px.quincena === p.quincena).reduce((s, px) => s + Number(px.monto), 0);
-                            const isPartial = pagosUserQ < cuotaQ;
-                            let bgClass = p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover';
-                            if (isPartial) bgClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+                          {(() => {
+                            const groupedDayPagos = Object.values(dayPagos.reduce((acc, p) => {
+                              const key = `${p.participante_id}-${p.quincena}`;
+                              if (!acc[key]) acc[key] = { ...p, monto: Number(p.monto) };
+                              else acc[key].monto += Number(p.monto);
+                              return acc;
+                            }, {}));
                             
-                            return (
-                              <div key={p.id} className={`text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 rounded-none flex items-center truncate ${bgClass}`}>
-                                <strong className="mr-1 truncate">{p.participante.nombre.split(' ')[0]}</strong> ${p.monto}
+                            return groupedDayPagos.slice(0, 4).map(p => {
+                              const pagosUserQ = pagos.filter(px => px.participante_id === p.participante_id && px.quincena === p.quincena).reduce((s, px) => s + Number(px.monto), 0);
+                              const isPartial = pagosUserQ < cuotaQ;
+                              let bgClass = p.quincena === '15' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-primary-hover';
+                              if (isPartial) bgClass = 'bg-yellow-100 text-yellow-800 border border-yellow-200';
+                              
+                              return (
+                                <div key={`${p.participante_id}-${p.quincena}`} className={`text-[9px] md:text-xs px-1 md:px-1.5 py-0.5 rounded-none flex items-center truncate ${bgClass}`}>
+                                  <strong className="mr-1 truncate">{p.participante.nombre.split(' ')[0]}</strong> ${p.monto}
+                                </div>
+                              );
+                            });
+                          })()}
+                          {(() => {
+                            const groupedCount = Object.keys(dayPagos.reduce((acc, p) => { acc[`${p.participante_id}-${p.quincena}`] = true; return acc; }, {})).length;
+                            return groupedCount > 4 ? (
+                              <div className="text-[10px] text-text-secondary text-center mt-1">
+                                +{groupedCount - 4} más
                               </div>
-                            );
-                          })}
-                          {dayPagos.length > 4 && (
-                            <div className="text-[10px] text-text-secondary text-center mt-1">
-                              +{dayPagos.length - 4} más
-                            </div>
-                          )}
+                            ) : null;
+                          })()}
                         </div>
                       </>
                     )}
@@ -469,9 +507,14 @@ const Calendario = () => {
               {getPagosForDay(selectedDate.getDate()).length > 0 && (
                 <div className="mb-6 p-4 bg-bg rounded-none border border-border">
                   <h4 className="mb-3 text-sm font-semibold text-text-secondary">Ya registrados en esta fecha:</h4>
-                  <ul className="flex flex-col gap-2">
-                    {getPagosForDay(selectedDate.getDate()).map(p => (
-                      <li key={p.id} className="flex justify-between text-sm p-2 bg-surface rounded-none border border-border shadow-sm">
+                  <ul className="flex flex-col gap-2 max-h-48 overflow-y-auto custom-scrollbar pr-2">
+                    {Object.values(getPagosForDay(selectedDate.getDate()).reduce((acc, p) => {
+                      const key = `${p.participante_id}-${p.quincena}`;
+                      if (!acc[key]) acc[key] = { ...p, monto: Number(p.monto) };
+                      else acc[key].monto += Number(p.monto);
+                      return acc;
+                    }, {})).map(p => (
+                      <li key={`${p.participante_id}-${p.quincena}`} className="flex justify-between text-sm p-2 bg-surface rounded-none border border-border shadow-sm">
                         <span><strong className="text-text">{p.participante.nombre}</strong> <span className="text-text-secondary">({p.quincena})</span></span>
                         <strong className="text-success">+ ${p.monto}</strong>
                       </li>
@@ -577,6 +620,12 @@ const Calendario = () => {
                   </div>
                 )}
 
+                {getFechaRestriccionError() && (
+                  <div className="bg-red-50 text-danger p-3 mb-4 text-sm font-semibold border border-red-200">
+                    {getFechaRestriccionError()}
+                  </div>
+                )}
+
                 <div className="input-group">
                   <label>Monto Recibido ($)</label>
                   <input 
@@ -615,7 +664,10 @@ const Calendario = () => {
                   <button 
                     type="submit" 
                     className="btn btn-primary flex-1 py-3 rounded-none disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={modalData.participante_id && Number(getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena)) <= 0}
+                    disabled={
+                      (modalData.participante_id && Number(getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena)) <= 0) || 
+                      !!getFechaRestriccionError()
+                    }
                   >
                     <DollarSign size={18} className="mr-2" /> 
                     {modalData.participante_id && Number(getMaxAmount(modalData.participante_id.value, modalData.tipo, modalData.quincena)) <= 0 
